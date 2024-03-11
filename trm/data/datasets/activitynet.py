@@ -79,7 +79,9 @@ class ActivityNetDataset:
 
     def __getitem__(self, idx):
         #feat = self.feats[self.annos[idx]['vid']]
-        feat = get_vid_feat(self.feat_file, self.annos[idx]['vid'], self.num_pre_clips, dataset_name="activitynet")
+        # feat = get_vid_feat(self.feat_file, self.annos[idx]['vid'], self.num_pre_clips, dataset_name="activitynet")
+        # print(feat.shape)
+        feat = np.random.rand(256, 500)
         # logger.info(f"feat shape: {feat.shape}, wordlen shape: {self.annos[idx]['wordlen'].shape}, query shape: {self.annos[idx]['query'].shape}, iou2d shape: {self.annos[idx]['iou2d'].shape}, moment shape: {self.annos[idx]['moment'].shape}, num_sentence: {len(self.annos[idx]['sentence'])}, idx: {idx}, sentence: {self.annos[idx]['sentence']}, duration: {self.annos[idx]['duration']}, phrase: {self.annos[idx]['phrase']}")
         # logger.info(f"index: {idx}, phrase: {self.annos[idx]['phrase']}, sentence: {self.annos[idx]['sentence']}")
         return {
