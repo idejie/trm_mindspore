@@ -49,14 +49,14 @@ def do_train(
         scoremap_loss_exc = scoremap_loss_exc * exc_weight
         meters.update(loss_vid=loss_vid, loss_sent=loss_sent, loss_iou_stnc=loss_iou_stnc, loss_iou_phrase=loss_iou_phrase, scoremap_loss_pos=scoremap_loss_pos, scoremap_loss_neg=scoremap_loss_neg, scoremap_loss_exc=scoremap_loss_exc)
         loss=0
-        loss = loss_iou_stnc
-        # if epoch <= cfg.SOLVER.ONLY_IOU:
-        #         loss += loss_iou_phrase + loss_iou_stnc + (scoremap_loss_pos + scoremap_loss_neg)*0.5 + scoremap_loss_exc
-        #         loss += loss_sent + loss_vid
-        # else:
-        #     loss += loss_iou_phrase + loss_iou_stnc + (scoremap_loss_pos + scoremap_loss_neg)*0.5 + scoremap_loss_exc
-        #     loss += (loss_sent + loss_vid) * 0.01
-        logger.info(f'loss: {loss}')
+        # loss = loss_iou_stnc
+        if epoch <= cfg.SOLVER.ONLY_IOU:
+                loss += loss_iou_phrase + loss_iou_stnc + (scoremap_loss_pos + scoremap_loss_neg)*0.5 + scoremap_loss_exc
+                loss += loss_sent + loss_vid
+        else:
+            loss += loss_iou_phrase + loss_iou_stnc + (scoremap_loss_pos + scoremap_loss_neg)*0.5 + scoremap_loss_exc
+            loss += (loss_sent + loss_vid) * 0.01
+        logger.info(f'loss: {loss} loss_vid: {loss_vid} loss_sent: {loss_sent} loss_iou_stnc: {loss_iou_stnc} loss_iou_phrase: {loss_iou_phrase} scoremap_loss_pos: {scoremap_loss_pos} scoremap_loss_neg: {scoremap_loss_neg} scoremap_loss_exc: {scoremap_loss_exc}')
         return loss,contrastive_scores, iou_scores
     
     grad_fn = mindspore.value_and_grad(forward_fn, None, optimizer.parameters, has_aux=True)

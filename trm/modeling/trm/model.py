@@ -90,6 +90,7 @@ class TRM(nn.Cell):
             feat2ds: B x C x T x T
             sent_feats: list(B) num_sent x C
         """
+        # print(batches)
         # backbone
         # packed data
         batches = pack_batches(batches)
@@ -362,3 +363,8 @@ class TRM(nn.Cell):
         else:
             logger.info(f'end loss, {self.text_encoder.use_phrase}, {self.cfg.RESIDUAL}, {self.cfg.LOSS.PHRASE_ONLY}')
             return  contrastive_scores, iou_scores, loss_vid, loss_sent, loss_iou_stnc, loss_iou_phrase, scoremap_loss_pos, scoremap_loss_neg, scoremap_loss_exc
+
+
+
+    
+    

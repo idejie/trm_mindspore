@@ -48,18 +48,23 @@ def evaluate(cfg, dataset, predictions, nms_thresh, recall_metrics=(1, 5)):
         result2d = predictions[idx]
         sen_l = data['sen_len']
         score2d = result2d['iou']
-        duration = data['duration']
+        duration = data['duration'].asnumpy()
         gt_moments = data['moment']
         sentences = data['sentence']
         logger.info(f'sen_l: {sen_l}, sentences: {len(sentences)}, gt_moments: {len(gt_moments)}, iou shape: {score2d.shape}')
         # logger.info(f"result2d['contrastive']: {result2d['contrastive']}")
         # raise
+        logger.info(f'duration:{type(duration[0])}')
         scorec2d = ops.pow(Tensor(result2d['contrastive'] * 0.5 + 0.5), cfg.TEST.CONTRASTIVE_SCORE_POW) * result2d['iou']
-        for gt_moment, pred_score2d, sentence,l in zip(gt_moments, score2d, sentences,sen_l):  # each sentence
+        for i  in range(len(sen_l)):
+            gt_moment = gt_moments[i]
+            pred_score2d = score2d[i]
+            sentence = sentences[i]
+            l = sen_l[i]
+            d = duration[i]
+        # for gt_moment, pred_score2d, sentence,l,d in zip(gt_moments, score2d, sentences,sen_l,list(duration)):  # each sentence
             num_instance += 1
-            logger.info(f'pred_score2d:{pred_score2d.shape}')
-            logger.info(f'num_clips: {num_clips}, duration: {duration}')
-            candidates, scores = score2d_to_moments_scores(pred_score2d, num_clips, duration)
+            candidates, scores = score2d_to_moments_scores(pred_score2d, num_clips, d)
             moments = nms(candidates, scores, nms_thresh)
             for i, r in enumerate(recall_metrics):
                 mious = iou(moments[:r], gt_moment)

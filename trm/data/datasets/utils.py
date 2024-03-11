@@ -31,10 +31,11 @@ def score2d_to_moments_scores(score2d, num_clips, duration):
     grids = score2d.nonzero()   
     
     grids = np.stack([grids[0], grids[1]], axis=1)
-    logger.info(f'grids: {grids.shape}')
+    # logger.info(f'grids: {grids.shape}')
     scores = score2d[grids[:, 0], grids[:, 1]]
-    logger.info(f'scores: {scores.shape}')
+    # logger.info(f'scores: {scores.shape}')
     grids[:, 1] += 1
+    # logger.info(f'duration: {duration}, num_clips: {num_clips}')
     moments = grids * duration / num_clips
     return moments, scores
 
