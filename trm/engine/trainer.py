@@ -35,13 +35,13 @@ def do_train(
     meters = MetricLogger(delimiter="  ")
     max_epoch = cfg.SOLVER.MAX_EPOCH
 
-    model.set_train()
+    
     contr_weight = cfg.MODEL.TRM.LOSS.CONTRASTIVE_WEIGHT
     consis_weight = cfg.MODEL.TRM.LOSS.CONSIS_WEIGHT
     exc_weight = cfg.MODEL.TRM.LOSS.EXC_WEIGHT
-    def forward_fn(model,batches,epoch):
+    def forward_fn(batches,epoch):
         contrastive_scores, iou_scores, loss_vid, loss_sent, loss_iou_stnc, loss_iou_phrase, scoremap_loss_pos, scoremap_loss_neg, scoremap_loss_exc = model(batches,cur_epoch=epoch)
-        logger.info(f'forward finished')
+        # logger.info(f'forward finished')
         # print(output,loss)
         # loss_vid, loss_sent, loss_iou_stnc, loss_iou_phrase, scoremap_loss_pos, scoremap_loss_neg, scoremap_loss_exc = loss0
         loss_vid, loss_sent = loss_vid * contr_weight, loss_sent * contr_weight
@@ -56,7 +56,7 @@ def do_train(
         else:
             loss += loss_iou_phrase + loss_iou_stnc + (scoremap_loss_pos + scoremap_loss_neg)*0.5 + scoremap_loss_exc
             loss += (loss_sent + loss_vid) * 0.01
-        logger.info(f'loss: {loss} loss_vid: {loss_vid} loss_sent: {loss_sent} loss_iou_stnc: {loss_iou_stnc} loss_iou_phrase: {loss_iou_phrase} scoremap_loss_pos: {scoremap_loss_pos} scoremap_loss_neg: {scoremap_loss_neg} scoremap_loss_exc: {scoremap_loss_exc}')
+        # logger.info(f'loss: {loss} loss_vid: {loss_vid} loss_sent: {loss_sent} loss_iou_stnc: {loss_iou_stnc} loss_iou_phrase: {loss_iou_phrase} scoremap_loss_pos: {scoremap_loss_pos} scoremap_loss_neg: {scoremap_loss_neg} scoremap_loss_exc: {scoremap_loss_exc}')
         return loss,contrastive_scores, iou_scores
     
     grad_fn = mindspore.value_and_grad(forward_fn, None, optimizer.parameters, has_aux=True)
@@ -65,13 +65,14 @@ def do_train(
     max_iteration = len(data_loader)
     writer_count = 0
     def train_step(data):
-        logger.info(f'grad_fn start')
-        (loss, contrastive_scores, iou_scores), grads = grad_fn(model,data,epoch)
-        logger.info(f'grad_fn finished')
+        # logger.info(f'grad_fn start')
+        (loss, contrastive_scores, iou_scores), grads = grad_fn(data,epoch)
+        # logger.info(f'grad_fn finished')
         optimizer(grads)
         return loss
 
     for epoch in range(arguments["epoch"], max_epoch + 1):
+        model.set_train()
         rest_epoch_iteration = (max_epoch - epoch) * max_iteration
         arguments["epoch"] = epoch
         # if epoch <= cfg.SOLVER.FREEZE_BERT:
@@ -93,7 +94,7 @@ def do_train(
             # loss_vid, loss_sent, loss_iou_stnc, loss_iou_phrase, scoremap_loss_pos, scoremap_loss_neg, scoremap_loss_exc = model(batches, cur_epoch=epoch)
             # model(batches,cur_epoch=epoch)
             # optimizer(grads)
-            logger.info(f'optimizer finished')
+            logger.info(f'Epoch:{epoch} it:{iteration} optimizer finished')
             # if max_norm > 0:
             #     ops.clip_by_norm(grads, max_norm)
             # optimizer.step()
@@ -125,12 +126,15 @@ def do_train(
             gc.collect()
 
         if checkpoint_period != -1 and epoch % checkpoint_period == 0:
+            logger.info('saving model')
             mindspore.save_checkpoint(model, os.path.join(output_dir, f"{cfg.MODEL.TRM.FEAT2D.NAME}_model_{epoch}e.ckpt"))
             # checkpointer.save(f"{cfg.MODEL.TRM.FEAT2D.NAME}_model_{epoch}e", **arguments)
+            logger.info('model saved')
 
         if data_loader_val is not None and test_period > 0 and epoch % test_period == 0 and epoch >= cfg.SOLVER.SKIP_TEST:
             # synchronize()
             # torch.cuda.empty_cache()
+            model.set_train(False)
             result_dict = inference(
                 cfg,
                 model,
@@ -140,7 +144,7 @@ def do_train(
                 device=cfg.MODEL.DEVICE,
             )
             # synchronize()
-            model.set_train()
+            
     total_training_time = time.time() - start_training_time
     total_time_str = str(datetime.timedelta(seconds=total_training_time))
     logger.info(

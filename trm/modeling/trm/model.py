@@ -113,10 +113,10 @@ class TRM(nn.Cell):
         # sent_feat, sent_feat_iou, phrase_feat, phrase_feat_iou, phrase_weight, phrase_masks
         
         if self.text_encoder.use_phrase:
-            logger.info(f'self.text_encoder.use_phrase: {self.text_encoder.use_phrase}')
+            # logger.info(f'self.text_encoder.use_phrase: {self.text_encoder.use_phrase}')
             sent_feat, sent_feat_iou, phrase_feat, phrase_feat_iou, phrase_weight, phrase_mask = self.text_encoder.encode_sentences(batches['sentence'], batches['phrase'])
         else:
-            logger.info(f'self.text_encoder.use_phrase: {self.text_encoder.use_phrase}')
+            # logger.info(f'self.text_encoder.use_phrase: {self.text_encoder.use_phrase}')
             sent_feat, sent_feat_iou = self.text_encoder(batches['query'], batches['word_len'])
             phrase_feat, phrase_feat_iou, phrase_weight, phrase_mask = mindspore.Tensor(0.0), mindspore.Tensor(0.0), mindspore.Tensor(0.0), mindspore.Tensor(0.0)
         # inference
@@ -204,7 +204,7 @@ class TRM(nn.Cell):
         # phrase contrastive
 
         if self.text_encoder.use_phrase and self.cfg.LOSS.CONTRASTIVE:
-            logger.info(f'self.text_encoder.use_phrase: {self.text_encoder.use_phrase}, self.cfg.LOSS.CONTRASTIVE: {self.cfg.LOSS.CONTRASTIVE}')
+            # logger.info(f'self.text_encoder.use_phrase: {self.text_encoder.use_phrase}, self.cfg.LOSS.CONTRASTIVE: {self.cfg.LOSS.CONTRASTIVE}')
             contrast_neg_vid = []
             contrast_neg_phr = []
             contrast_neg_mask = []
@@ -238,13 +238,13 @@ class TRM(nn.Cell):
                 contrast_neg_phr.append((phrase_persent_scores*10).sigmoid() * self.feat2d.mask2d)
                 contrast_neg_mask.append(phrase_mask[neg_idx])
         else:
-            logger.info(f'self.text_encoder.use_phrase: {self.text_encoder.use_phrase}, self.cfg.LOSS.CONTRASTIVE: {self.cfg.LOSS.CONTRASTIVE}')
+            # logger.info(f'self.text_encoder.use_phrase: {self.text_encoder.use_phrase}, self.cfg.LOSS.CONTRASTIVE: {self.cfg.LOSS.CONTRASTIVE}')
             contrast_neg_vid = mindspore.Tensor(0.0)
             contrast_neg_phr = None
             contrast_neg_mask = None
 
         if self.text_encoder.use_phrase and self.use_score_map_loss:
-            logger.info(f'self.text_encoder.use_phrase: {self.text_encoder.use_phrase}, self.use_score_map_loss: {self.use_score_map_loss}')
+            # logger.info(f'self.text_encoder.use_phrase: {self.text_encoder.use_phrase}, self.use_score_map_loss: {self.use_score_map_loss}')
             phrase_score_map = pad_sequence(phrase_score_map, batch_first=True) # B, NS, NP, T, T
             B, NS, NP, T1, T2 = phrase_score_map.shape
             phrase_score_map_mask = pad_sequence(phrase_score_map_mask, batch_first=True) # B, NS, NP
@@ -266,7 +266,7 @@ class TRM(nn.Cell):
             # scoremap_loss_pos = torch.sum(scoremap_loss_pos * mask) / torch.sum(mask)
 
             if self.cfg.LOSS.CONTRASTIVE:
-                logger.info(f'self.cfg.LOSS.CONTRASTIVE: {self.cfg.LOSS.CONTRASTIVE}')
+                # logger.info(f'self.cfg.LOSS.CONTRASTIVE: {self.cfg.LOSS.CONTRASTIVE}')
                 contrast_neg_vid = pad_sequence(contrast_neg_vid, batch_first=True) # B, NS, NP, T, T
                 B, NS, NP, T1, T2 = contrast_neg_vid.shape
                 scoremap_loss_neg_vid, _ = contrast_neg_vid.masked_select(self.feat2d.mask2d==1).view(B, NS, NP, -1).max(axis=-1,return_indices=True)
@@ -280,7 +280,7 @@ class TRM(nn.Cell):
                 scoremap_loss_neg_vid = ops.sum(scoremap_loss_neg_vid * phrase_score_map_mask) / ops.sum(phrase_score_map_mask)
                 # mask = phrase_score_map_mask.gather(index=idx.unsqueeze(-1), dim=-1).squeeze(-1)
                 # scoremap_loss_neg_vid = torch.sum(scoremap_loss_neg_vid * mask) / torch.sum(mask)
-                logger.info('start loss')
+                # logger.info('start loss')
                 contrast_neg_phr = pad_sequence(contrast_neg_phr, batch_first=True) # B, NS, NP, T, T
                 B, NS, NP, T1, T2 = contrast_neg_phr.shape
                 contrast_neg_mask = pad_sequence(contrast_neg_mask, batch_first=True) # B, NS, NP
@@ -307,12 +307,12 @@ class TRM(nn.Cell):
                 scoremap_loss_exc = ops.where(ops.isinf(scoremap_loss_exc), ops.full_like(scoremap_loss_exc, 0), scoremap_loss_exc)
                 scoremap_loss_exc = ops.sum(scoremap_loss_exc * (phrase_iou2d < self.thresh).long() * self.feat2d.mask2d) / ops.sum((phrase_iou2d < self.thresh).long() * self.feat2d.mask2d)
             else:
-                logger.info(f'self.cfg.LOSS.CONTRASTIVE: {self.cfg.LOSS.CONTRASTIVE}')
+                # logger.info(f'self.cfg.LOSS.CONTRASTIVE: {self.cfg.LOSS.CONTRASTIVE}')
                 scoremap_loss_pos = mindspore.Tensor(0.0)
                 scoremap_loss_neg = mindspore.Tensor(0.0)
                 scoremap_loss_exc = mindspore.Tensor(0.0)
         else:
-            logger.info(f'self.text_encoder.use_phrase: {self.text_encoder.use_phrase}, self.use_score_map_loss: {self.use_score_map_loss}')
+            # logger.info(f'self.text_encoder.use_phrase: {self.text_encoder.use_phrase}, self.use_score_map_loss: {self.use_score_map_loss}')
             contrast_neg_vid = mindspore.Tensor(0.0)
             scoremap_loss_pos = mindspore.Tensor(0.0)
             scoremap_loss_neg = mindspore.Tensor(0.0)
@@ -325,7 +325,7 @@ class TRM(nn.Cell):
         # if self.training:
         # import pdb
         # pdb.set_trace()
-        logger.info('start loss iou')
+        # logger.info('start loss iou')
         if self.text_encoder.use_phrase and not self.cfg.RESIDUAL:
             loss_iou_phrase = self.iou_score_loss(ops.cat(phrase_iou_scores, axis=0), ops.cat(ious2d, axis=0), cur_epoch)
             if not self.cfg.LOSS.PHRASE_ONLY:
@@ -341,7 +341,7 @@ class TRM(nn.Cell):
         # loss = (loss_vid, loss_sent, loss_iou_stnc, loss_iou_phrase, scoremap_loss_pos, scoremap_loss_neg, scoremap_loss_exc)
         # del scoremap_loss_pos, scoremap_loss_neg, scoremap_loss_exc
         # loss = (loss_iou_stnc, loss_iou_phrase, scoremap_loss_pos, scoremap_loss_neg, scoremap_loss_exc)
-        logger.info('start contrastive_score')
+        # logger.info('start contrastive_score')
         for i, sf in enumerate(sent_feat):
             # contrastive part
             vid_feat = map2d[i, ...]  # C x T x T
@@ -361,7 +361,7 @@ class TRM(nn.Cell):
                 # return map2d_iou, sent_feat_iou, contrastive_scores, [(s + p) / 2 for s, p in zip(iou_scores, phrase_iou_scores)], loss # first two maps for visualization
                 return  contrastive_scores, iou_scores, loss_vid, loss_sent, loss_iou_stnc, loss_iou_phrase, scoremap_loss_pos, scoremap_loss_neg, scoremap_loss_exc # first two maps for visualization
         else:
-            logger.info(f'end loss, {self.text_encoder.use_phrase}, {self.cfg.RESIDUAL}, {self.cfg.LOSS.PHRASE_ONLY}')
+            # logger.info(f'end loss, {self.text_encoder.use_phrase}, {self.cfg.RESIDUAL}, {self.cfg.LOSS.PHRASE_ONLY}')
             return  contrastive_scores, iou_scores, loss_vid, loss_sent, loss_iou_stnc, loss_iou_phrase, scoremap_loss_pos, scoremap_loss_neg, scoremap_loss_exc
 
 

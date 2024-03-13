@@ -8,7 +8,7 @@ from trm.structures import TLGBatch
 import numpy as np
 from mindspore import ops, Tensor
 from loguru import logger
-
+import torch
 def build_dataset(dataset_list, dataset_catalog, cfg, is_train=True):
     # build specific dataset
     if not isinstance(dataset_list, (list, tuple)):
@@ -25,6 +25,7 @@ def build_dataset(dataset_list, dataset_catalog, cfg, is_train=True):
         args["num_pre_clips"] = cfg.INPUT.NUM_PRE_CLIPS
         args["num_clips"] = cfg.MODEL.TRM.NUM_CLIPS
         args["remove_person"] = cfg.MODEL.TRM.LOSS.CONTRASTIVE
+        # args['debug'] = cfg.DEBUG
         dataset = factory(**args)
         datasets.append(dataset)
 
@@ -38,11 +39,13 @@ def build_dataset(dataset_list, dataset_catalog, cfg, is_train=True):
         raise NotImplementedError('Concatenating multiple datasets is not supported')
     return [dataset]
 
-def make_data_sampler(dataset, shuffle):
-    # if shuffle:
-    #     sampler = torch.utils.data.sampler.RandomSampler(dataset)
-    # else:
-    #     sampler = torch.utils.data.sampler.SequentialSampler(dataset)
+def make_data_sampler(dataset, shuffle, distributed):
+    if distributed:
+        return DistributedSampler(dataset, shuffle=shuffle)
+    if shuffle:
+        sampler = torch.utils.data.sampler.RandomSampler(dataset)
+    else:
+        sampler = torch.utils.data.sampler.SequentialSampler(dataset)
     return sampler
 
 def make_train_data_sampler(dataset, sampler, batch_size):
@@ -89,19 +92,17 @@ def pad_sequence(sequences, batch_first=True, padding_value=0):
     max_size = sequences[0].shape
     trailing_dims = max_size[1:]
     max_len = max([s.shape[0] for s in sequences])
-    if batch_first:
-        out_dims = (len(sequences), max_len) + trailing_dims
-    else:
-        out_dims = (max_len, len(sequences)) + trailing_dims
+
+    out_dims = (len(sequences), max_len) + trailing_dims
 
     out_tensor = np.ones(out_dims) *padding_value 
+    
     for i, tensor in enumerate(sequences):
         length = tensor.shape[0]
         # use index notation to prevent duplicate references to the tensor
-        if batch_first:
-            out_tensor[i, :length, ...] = tensor
-        else:
-            out_tensor[:length, i, ...] = tensor
+        out_tensor[i, :length, ...] = tensor
+    
+
 
     return out_tensor
 
@@ -112,9 +113,10 @@ def batch_process(data,BatchInfo):
     feature = np.stack(feature)    
     # logger.info(f'feature shape: {feature.shape}')
     # 2.query
-    query = [d['query'] for d in data]
-    # logger.info(f'query: {[q.shape for q in query]}')
+    query = [np.array(d['query']) for d in data]
     query = pad_sequence(query)
+
+   
     # logger.info(f'query after: {[q.shape for q in query]}')
     # logger.info(f'{[q.shape for q in query]}')
     # logger.info(f'query shape: {query.shape}')
@@ -211,7 +213,11 @@ def make_data_loader(cfg, is_train=True, is_distributed=False, is_for_period=Fal
         #     batch_sampler=batch_sampler,
         #     collate_fn=BatchCollator(),
         # )
-        dataset = dataset.batch(batch_size=4, per_batch_map=batch_process,output_columns=["feature","query","word_len","iou2d","moment","index","sen_len","duration","sentence","phrase"])
+        if is_train:
+            dataset = dataset.batch(batch_size=cfg.SOLVER.BATCH_SIZE, per_batch_map=batch_process,output_columns=["feature","query","word_len","iou2d","moment","index","sen_len","duration","sentence","phrase"])
+        else:
+            print('test',cfg.TEST.BATCH_SIZE)
+            dataset = dataset.batch(batch_size=cfg.TEST.BATCH_SIZE, per_batch_map=batch_process,output_columns=["feature","query","word_len","iou2d","moment","index","sen_len","duration","sentence","phrase"])
         # for d in dataset:
         #     print(d)
         data_loaders.append(dataset)

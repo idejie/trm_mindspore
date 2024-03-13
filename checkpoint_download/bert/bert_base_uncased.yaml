@@ -129,6 +129,8 @@ model:
     use_relative_positions: False
     use_past: False
     checkpoint_name_or_path: ""
+    compute_dtype: "float32"
+    param_init_dtype: "float32"
   arch:
     type: BertForPreTraining
 

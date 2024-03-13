@@ -12,8 +12,11 @@ def pytorch_params(pth_file):
         if name == 'featpool.conv.weight':
             parameter = parameter.unsqueeze(3)
         if 'output.dense' in name or 'intermediate.dense' in name:
+            print('**',name, parameter.numpy().shape)
             parameter = parameter.t()
-        print(name, parameter.numpy().shape)
+        # if  "key"  in name or 'query' in name or 'value' in name:
+        #     parameter = parameter.t()
+        #     print('##',name, parameter.numpy().shape)
         pt_params[name] = parameter.numpy()
     return pt_params
 
@@ -23,7 +26,7 @@ def mindspore_params(network):
     for param in network.get_parameters():
         name = param.name
         value = param.data.asnumpy()
-        print(name, value.shape)
+        # print(name, value.shape)
         ms_params[name] = value
     return ms_params
 
@@ -65,10 +68,10 @@ text_encoder.bert.bert_encoder.encoder.blocks.0.attention.projection.bias (768,)
                 "text_encoder.layernorm.beta": "text_encoder.layernorm.bias",
                 }
     layer_map = {# layer0
-                "text_encoder.bert.bert_encoder.encoder.blocks.#.layernorm1.gamma": "text_encoder.bert.encoder.layer.#.attention.output.LayerNorm.weight",
-                "text_encoder.bert.bert_encoder.encoder.blocks.#.layernorm1.beta": "text_encoder.bert.encoder.layer.#.attention.output.LayerNorm.bias",
-                "text_encoder.bert.bert_encoder.encoder.blocks.#.layernorm2.gamma": "text_encoder.bert.encoder.layer.#.output.LayerNorm.weight",
-                "text_encoder.bert.bert_encoder.encoder.blocks.#.layernorm2.beta": "text_encoder.bert.encoder.layer.#.output.LayerNorm.bias",
+                "text_encoder.bert.bert_encoder.encoder.blocks.#.layernorm1.gamma": "text_encoder.bert.encoder.layer.#.output.LayerNorm.weight",
+                "text_encoder.bert.bert_encoder.encoder.blocks.#.layernorm1.beta": "text_encoder.bert.encoder.layer.#.output.LayerNorm.bias",
+                "text_encoder.bert.bert_encoder.encoder.blocks.#.layernorm2.gamma": "text_encoder.bert.encoder.layer.#.attention.output.LayerNorm.weight",
+                "text_encoder.bert.bert_encoder.encoder.blocks.#.layernorm2.beta": "text_encoder.bert.encoder.layer.#.attention.output.LayerNorm.bias",
                 "text_encoder.bert.bert_encoder.encoder.blocks.#.attention.dense1.weight": "text_encoder.bert.encoder.layer.#.attention.self.query.weight",
                 "text_encoder.bert.bert_encoder.encoder.blocks.#.attention.dense1.bias": "text_encoder.bert.encoder.layer.#.attention.self.query.bias",
                 "text_encoder.bert.bert_encoder.encoder.blocks.#.attention.dense2.weight": "text_encoder.bert.encoder.layer.#.attention.self.key.weight",
@@ -158,10 +161,10 @@ def main():
     cfg.freeze()
 
     model = build_model(cfg)
-    pth_path = "/hd1/shared/TRM_pytorch/outputs/activitynet/pool_model_5e.pth"
+    pth_path = "/hd1/shared/TRM_pytorch/outputs/charades/pool_model_9e.pth"
     pt_param = pytorch_params(pth_path)
     print("="*20)
-    ckpt_path = "trm_act_e5.ckpt"
+    ckpt_path = "trm_charades_e9_all.ckpt"
     ms_param = mindspore_params(model)
     param_convert(ms_param, pt_param, ckpt_path)
 

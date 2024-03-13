@@ -13,15 +13,27 @@ from trm.utils.miscellaneous import mkdir, save_config
 from mindspore.train import Model, CheckpointConfig, ModelCheckpoint, LossMonitor
 
 from mindspore import nn, context, Tensor
+import mindspore
+# mindspore.set_context(env_config_path="./mindspore_config.json")
 context.set_context(mode=context.PYNATIVE_MODE, device_target="GPU")
+from mindspore.communication import init
+
+
+
+import random
+
+import numpy
+
+import mindspore
+
+mindspore.set_seed(42)
+numpy.random.seed(42)
+random.seed(42)
+
 
 from loguru import logger
 def train(cfg):
     model = build_model(cfg)
-    for param in model.get_parameters():
-        name = param.name
-        value = param.data.asnumpy()
-        print(name, value.shape)
     learning_rate = cfg.SOLVER.LR * 1.0
     
     data_loader = make_data_loader(cfg, is_train=True)
@@ -142,8 +154,8 @@ def main():
     logger.info("Loaded configuration file {}".format(args.config_file))
     with open(args.config_file, "r") as cf:
         config_str = "\n" + cf.read()
-        logger.info(config_str)
-    logger.info("Running with config:\n{}".format(cfg))
+        # logger.info(config_str)
+    # logger.info("Running with config:\n{}".format(cfg))
 
     output_config_path = os.path.join(cfg.OUTPUT_DIR, 'config.yml')
     logger.info("Saving config into: {}".format(output_config_path))

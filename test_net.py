@@ -58,6 +58,10 @@ def main():
     output_dir = cfg.OUTPUT_DIR
     
     ms.load_checkpoint(args.ckpt, model)
+    params = ms.load_checkpoint(args.ckpt)
+    missing,unexpect = ms.load_param_into_net(model, params)
+    logger.info(f'missing keys: {missing}')
+    logger.info(f'unexpected keys: {unexpect}')
     ckpt = cfg.MODEL.WEIGHT if args.ckpt is None else args.ckpt
     # ckpt.replace('pool_model_12e.pth', 'pool_model_%de.pth'%epoch)
     logger.info("load from %s"%ckpt)

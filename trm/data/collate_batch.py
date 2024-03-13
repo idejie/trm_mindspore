@@ -1,5 +1,7 @@
+import torch
+from torch.nn.utils.rnn import pad_sequence
 from trm.structures import TLGBatch
-import mindspore.numpy as np
+
 
 class BatchCollator(object):
     """
@@ -15,7 +17,7 @@ class BatchCollator(object):
         feats, queries, wordlens, ious2d, moments, num_sentence, idxs, sentences, durations, phrase = transposed_batch
 
         return TLGBatch(
-            feats=np.stack(feats).float(),
+            feats=torch.stack(feats).float(),
             queries=queries,
             wordlens=wordlens,
             all_iou2d=ious2d,

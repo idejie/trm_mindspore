@@ -7,7 +7,7 @@ from .utils import get_vid_feat, bert_embedding, moment_to_iou2d
 from tqdm import tqdm
 
 class ActivityNetDataset:
-    def __init__(self, ann_file, feat_file, num_pre_clips, num_clips, remove_person=False):
+    def __init__(self, ann_file, feat_file, num_pre_clips, num_clips, remove_person=False,debug=False):
         # super(ActivityNetDataset, self).__init__()
         self.ann_name = os.path.basename(ann_file)
         self.feat_file = feat_file
@@ -15,11 +15,16 @@ class ActivityNetDataset:
         with open(ann_file, 'r') as f:
             annos = json.load(f)
         self.annos = []
+        self.debug = debug
         self.remove_person = remove_person
         tokenizer = AutoTokenizer.from_pretrained('bert_base_uncased')
         logger.info("Preparing data, please wait...")
         #TODO: fix the loading
-        for vid, anno in tqdm(list(annos.items())[:10]):
+        if self.debug:
+            annos = list(annos.items())[:100]
+        else:
+            annos = list(annos.items())
+        for vid, anno in tqdm(annos):
             duration = anno['duration']
             # Produce annotations
             moments = []
@@ -57,7 +62,9 @@ class ActivityNetDataset:
             moments = np.stack(moments)
             all_iou2d = np.stack(all_iou2d)
             queries, word_lens = bert_embedding(sentences, tokenizer)  # padded query of N*word_len, tensor of size = N
-            
+            queries = queries.asnumpy()
+            word_lens = word_lens.asnumpy()
+            # logger.info(f"queries, {type(queries)}")
             assert moments.shape[0] == all_iou2d.shape[0]
             assert moments.shape[0] == queries.shape[0]
             assert moments.shape[0] == word_lens.shape[0]
@@ -81,10 +88,14 @@ class ActivityNetDataset:
         #feat = self.feats[self.annos[idx]['vid']]
         # feat = get_vid_feat(self.feat_file, self.annos[idx]['vid'], self.num_pre_clips, dataset_name="activitynet")
         # print(feat.shape)
-        feat = np.random.rand(256, 500)
+        if self.debug:
+            feat = np.random.rand(256, 500)
+            # logger.info('debug mode')
+        else:
+            feat = get_vid_feat(self.feat_file, self.annos[idx]['vid'], self.num_pre_clips, dataset_name="activitynet")
         # logger.info(f"feat shape: {feat.shape}, wordlen shape: {self.annos[idx]['wordlen'].shape}, query shape: {self.annos[idx]['query'].shape}, iou2d shape: {self.annos[idx]['iou2d'].shape}, moment shape: {self.annos[idx]['moment'].shape}, num_sentence: {len(self.annos[idx]['sentence'])}, idx: {idx}, sentence: {self.annos[idx]['sentence']}, duration: {self.annos[idx]['duration']}, phrase: {self.annos[idx]['phrase']}")
         # logger.info(f"index: {idx}, phrase: {self.annos[idx]['phrase']}, sentence: {self.annos[idx]['sentence']}")
-        return {
+        data = {
             "feature": feat,
             "query": self.annos[idx]['query'],
             "wordlen": self.annos[idx]['wordlen'],
@@ -96,6 +107,9 @@ class ActivityNetDataset:
             "duration": self.annos[idx]['duration'],
             "phrase": self.annos[idx]['phrase'],
         }
+        # for key,value in data.items():
+        #     logger.info(f'{key} {type(value)}')
+        return  data
         # p = []
         # for pp in self.annos[idx]['phrase']:
         #     pp = '#'.join(pp)

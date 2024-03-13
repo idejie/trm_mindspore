@@ -7,6 +7,7 @@ from yacs.config import CfgNode as CN
 # Config definition
 # -----------------------------------------------------------------------------
 _C = CN()
+_C.DEBUG=False
 
 _C.MODEL = CN()
 _C.MODEL.DEVICE = "cuda"
@@ -92,7 +93,7 @@ _C.SOLVER.MAX_EPOCH = 12
 _C.SOLVER.LR = 0.01
 _C.SOLVER.CHECKPOINT_PERIOD = 1
 _C.SOLVER.TEST_PERIOD = 1
-_C.SOLVER.BATCH_SIZE = 32
+_C.SOLVER.BATCH_SIZE = 4
 _C.SOLVER.MILESTONES = (8, 11)
 _C.SOLVER.RESUME = False
 _C.SOLVER.RESUME_EPOCH = 1
@@ -104,7 +105,7 @@ _C.SOLVER.SKIP_TEST = 0
 # Specific test options
 # ---------------------------------------------------------------------------- #
 _C.TEST = CN()
-_C.TEST.BATCH_SIZE = 64
+_C.TEST.BATCH_SIZE = 1
 _C.TEST.NMS_THRESH = 0.5
 _C.TEST.CONTRASTIVE_SCORE_POW = 0.5
  
