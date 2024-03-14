@@ -1,5 +1,5 @@
 # TRM: Phrase-level Temporal Relationship Mining for Temporal Sentence Localization
-> Mindsopre implementation of Phrase-level Temporal Relationship Mining for Temporal Sentence Localization (AAAI2023).
+> Mindspore implementation of Phrase-level Temporal Relationship Mining for Temporal Sentence Localization (AAAI2023).
 
 
 ## Abstract
