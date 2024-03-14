@@ -5,6 +5,7 @@ from trm.utils.imports import import_file
 from . import datasets as D
 from .samplers import DistributedSampler
 from .collate_batch import BatchCollator
+from loguru import logger
 
 def build_dataset(dataset_list, dataset_catalog, cfg, is_train=True):
     # build specific dataset
@@ -95,6 +96,7 @@ def make_data_loader(cfg, is_train=True, is_distributed=False, is_for_period=Fal
             batch_sampler = make_train_data_sampler(dataset, sampler, batch_size_per_gpu)
         else:
             batch_sampler = make_test_data_sampler(dataset, sampler, batch_size_per_gpu)
+        logger.info(f'dataset: {dataset}, length: {len(dataset)}')
         data_loader = torch.utils.data.DataLoader(
             dataset,
             num_workers=cfg.DATALOADER.NUM_WORKERS,

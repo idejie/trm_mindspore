@@ -1,7 +1,7 @@
 # find all configs in configs/
 config=charades
 # set your gpu id
-gpus=6
+gpus=2
 # number of gpus
 gpun=1
 # please modify it with different value (e.g., 127.0.0.2, 29502) when you run multi task on the same machine

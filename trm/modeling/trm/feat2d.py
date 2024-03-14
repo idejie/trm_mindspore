@@ -73,7 +73,9 @@ class SparseConv(nn.Module):
         map2d = x.new_zeros(B, D, N, N)
         map2d[:, :, range(N), range(N)] = x  # fill a diagonal line
         for conv, (i, j) in zip(self.convs, self.maskij):
+            print(x.shape)
             x = conv(x)
+            print(len(i),len(j),x.shape, map2d[:, :, i, j].shape)
             map2d[:, :, i, j] = x
         return map2d
 
@@ -88,3 +90,12 @@ def build_feat2d(cfg):
         return SparseMaxPool(pooling_counts, num_clips)
     else:
         raise NotImplementedError("No such feature 2d method as %s" % cfg.MODEL.TRM.FEAT2D.NAME)
+
+
+if __name__ == '__main__':
+    sparse_conv = SparseConv([15, 8, 8], 64, 512)
+    sparse_max_pool = SparseMaxPool([15, 8, 8], 64)
+    x = torch.randn(2, 512, 64)
+    y = sparse_conv(x)
+    z = sparse_max_pool(x)
+    print(y.shape, z.shape)

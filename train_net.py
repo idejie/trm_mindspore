@@ -1,4 +1,5 @@
 import argparse
+import logging
 import os
 import random
 import torch
@@ -18,10 +19,13 @@ from trm.utils.logger import setup_logger
 from trm.utils.miscellaneous import mkdir, save_config
 
 
+
 def train(cfg, local_rank, distributed):
     model = build_model(cfg)
     device = torch.device(cfg.MODEL.DEVICE)
     model.to(device)
+    logger = logging.getLogger("trm.trainer")
+    logger.info("Model is built")
     if distributed:
         model = torch.nn.parallel.DistributedDataParallel(
             model, device_ids=[local_rank], output_device=local_rank,
@@ -170,7 +174,7 @@ def main():
     logger.info("Saving config into: {}".format(output_config_path))
     # save overloaded model config in the output directory
     save_config(cfg, output_config_path)
-
+    logger.info('to train')
     model = train(cfg, args.local_rank, args.distributed)
 
     if not args.skip_test:

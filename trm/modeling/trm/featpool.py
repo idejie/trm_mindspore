@@ -18,3 +18,8 @@ def build_featpool(cfg):
     kernel_size = cfg.MODEL.TRM.FEATPOOL.KERNEL_SIZE  # 4 for anet, 2 for tacos, 16 for charades
     stride = cfg.INPUT.NUM_PRE_CLIPS // cfg.MODEL.TRM.NUM_CLIPS
     return FeatAvgPool(input_size, hidden_size, kernel_size, stride)
+
+if __name__ == '__main__':
+    featpool = FeatAvgPool(4096, 512, 2, 2)
+    x = torch.rand(1,512, 4096)
+    print(featpool(x).shape)  # torch.Size([2, 512, 32])

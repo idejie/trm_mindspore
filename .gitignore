@@ -1,0 +1,16 @@
+.vscode
+*.ipynb
+output
+outputs
+*.deb
+__pycache__
+*.egg-info
+*.egg
+*.egg-info/
+*.egg/
+*.pyc
+mindformers
+*.ckpt
+*.pkl
+data
+*.pt

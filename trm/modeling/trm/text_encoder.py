@@ -1,8 +1,8 @@
 import torch
 from torch import nn
-from transformers import DistilBertModel
+from transformers import DistilBertModel, BertModel, BertTokenizer
 from torch.functional import F
-from trm.data.datasets.utils import bert_embedding_batch
+from .utils import bert_embedding_batch
 from transformers import DistilBertTokenizer
 from torch.nn.utils.rnn import pad_sequence
 
@@ -54,7 +54,7 @@ class AttentivePooling(nn.Module):
 class DistilBert(nn.Module):
     def __init__(self, joint_space_size, dataset, use_phrase, drop_phrase):
         super().__init__()
-        self.bert = DistilBertModel.from_pretrained('distilbert-base-uncased')
+        self.bert = BertModel.from_pretrained('google-bert/bert-base-uncased')# DistilBertModel.from_pretrained('distilbert-base-uncased')
         self.fc_out1 = nn.Linear(768, joint_space_size)
         self.fc_out2 = nn.Linear(768, joint_space_size)
         self.dataset = dataset
@@ -64,7 +64,7 @@ class DistilBert(nn.Module):
         self.drop_phrase = drop_phrase
         if self.use_phrase:
             self.patt = AttentivePooling(joint_space_size, 128) # 128 is a magic number, remember to rewrite!
-        self.tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
+        self.tokenizer = BertTokenizer.from_pretrained("google-bert/bert-base-uncased")#DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
         self.joint_space_size = joint_space_size
     
     def encode_single(self, query, word_len):
@@ -129,6 +129,7 @@ class DistilBert(nn.Module):
                 
                 phrase_query, phrase_len = bert_embedding_batch(phrases_avid, self.tokenizer)
                 for query, word_len in zip(phrase_query, phrase_len):
+                    # print('query',query.shape, word_len)
                     out, out_iou = self.encode_single(query[:10].cuda(), word_len[:10].cuda())
                     pad_tensor = torch.zeros(10-len(out), self.joint_space_size) # this 10 is a magic number, remenber to rewrite!
                     pad_tensor = pad_tensor.to(out.device)
@@ -168,3 +169,17 @@ def build_text_encoder(cfg):
     use_phrase = cfg.MODEL.TRM.TEXT_ENCODER.USE_PHRASE
     drop_phrase = cfg.MODEL.TRM.TEXT_ENCODER.DROP_PHRASE
     return DistilBert(joint_space_size, dataset_name, use_phrase, drop_phrase)
+
+if __name__ == '__main__':
+    attn_pool = AttentivePooling(512, 128)
+    x = torch.rand(2, 5, 512)
+    y = torch.rand(2, 512)
+    mask = torch.ones(2, 5)
+    print(attn_pool(x, y, mask).shape)  # torch.Size([2, 5])
+    
+    bert = DistilBert(512, "activitynet", True, True).cuda()
+    queries = [["hello world", "this is a test"],["hello world"]]
+    phrases = [ [['hello','world'],['this','is','a','test']], [['hello','world']]]
+    sent_feat, sent_feat_iou, phrase_feat, phrase_feat_iou, phrase_weight, phrase_masks = bert.encode_sentences(queries, phrases)
+    print(sent_feat[0].shape, sent_feat_iou[0].shape, phrase_feat[0].shape, phrase_feat_iou[0].shape, phrase_weight[0].shape, phrase_masks[0].shape)
+    

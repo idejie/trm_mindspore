@@ -38,6 +38,8 @@ class ProposalConv(nn.Module):
         padded_mask = self.mask2d
         for i in range(self.num_stack_layers):
             x = self.bn[i](self.convs[i](x)).relu()
+            # print(f'{i} layer x:',x.shape)
+            # print('padded_mask',padded_mask.shape)
             padded_mask, masked_weight = get_padded_mask_and_weight(padded_mask, self.convs[i])
             x = x * masked_weight
         out1 = self.conv1x1_contrastive(x)
@@ -53,3 +55,10 @@ def build_proposal_conv(cfg, mask2d):
     output_size = cfg.MODEL.TRM.JOINT_SPACE_SIZE
     dataset_name = cfg.DATASETS.NAME
     return ProposalConv(input_size, hidden_size, kernel_size, num_stack_layers, output_size, mask2d, dataset_name)
+
+if __name__ == '__main__':
+    mask2d = torch.ones(256,256).cuda()
+    conv = ProposalConv(256, 256, 3, 3, 256, mask2d, "activitynet").cuda()
+    x = torch.randn(1, 256, 256, 256).cuda()
+    out1, out2 = conv(x)
+    print(out1.shape, out2.shape)

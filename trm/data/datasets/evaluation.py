@@ -47,19 +47,26 @@ def evaluate(cfg, dataset, predictions, nms_thresh, recall_metrics=(1, 5)):
     mious_ = []
     lengths = []
     durations = []
+    # print('len(predictions)',len(predictions))
     for idx, result2d in tqdm(enumerate(predictions)):   # each video
         score2d = torch.pow(result2d['contrastive'] * 0.5 + 0.5, cfg.TEST.CONTRASTIVE_SCORE_POW) * result2d['iou']
         # score2d = result2d['iou']
         duration = dataset.get_duration(idx)
         gt_moments = dataset.get_moment(idx)
+        # print('gt_moments',gt_moments.shape, score2d.shape)
         sentences = dataset.get_sentence(idx)
         for gt_moment, pred_score2d, sentence in zip(gt_moments, score2d, sentences):  # each sentence
             num_instance += 1
+            # print('pred_score2d',pred_score2d.shape,num_clips,duration)
             candidates, scores = score2d_to_moments_scores(pred_score2d, num_clips, duration)
+            # print(type(candidates),type(scores))
             moments = nms(candidates, scores, nms_thresh)
             for i, r in enumerate(recall_metrics):
                 mious = iou(moments[:r], gt_moment)
+                # print('gt',gt_moment.shape,moments[:r].shape, mious[:, None].shape)
+                # print('r',r, num_iou_metrics)
                 bools = mious[:, None].expand(r, num_iou_metrics) >= iou_metrics
+                # print('bools',type(bools))
                 recall_x_iou[i] += bools.any(dim=0)
             miou = iou(moments[:1], gt_moment)
             mious_.append(float(miou))

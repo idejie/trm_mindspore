@@ -3,7 +3,7 @@ import json
 import logging
 import torch
 from .utils import  moment_to_iou2d, bert_embedding, get_vid_feat
-from transformers import DistilBertTokenizer
+from transformers import DistilBertTokenizer,BertTokenizer,AutoTokenizer
 
 
 class ActivityNetDataset(torch.utils.data.Dataset):
@@ -16,11 +16,11 @@ class ActivityNetDataset(torch.utils.data.Dataset):
             annos = json.load(f)
         self.annos = []
         self.remove_person = remove_person
-        tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
+        tokenizer = BertTokenizer.from_pretrained('google-bert/bert-base-uncased') #DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
         logger = logging.getLogger("trm.trainer")
         logger.info("Preparing data, please wait...")
 
-        for vid, anno in annos.items():
+        for vid, anno in list(annos.items()):
             duration = anno['duration']
             # Produce annotations
             moments = []
@@ -97,3 +97,18 @@ class ActivityNetDataset(torch.utils.data.Dataset):
     def get_vid(self, idx):
         return self.annos[idx]['vid']
 
+
+if __name__ == '__main__':
+    ann_file = "/hd1/shared/TRM_pytorch/dataset/ActivityNet/train.json"
+    feat_file = "/network_space/storage43/zhengmh/Dataset/ActivityNet/sub_activitynet_v1-3.c3d.hdf5"
+    dataset = ActivityNetDataset(ann_file, feat_file, 16, 16)
+    print(dataset[0][0])
+    print(dataset[0][1])
+    print(dataset[0][2])
+    print(dataset[0][3])
+    print(dataset[0][4])
+    print(dataset[0][5])
+    print(dataset[0][6])
+    print(dataset[0][7])
+    print(dataset[0][8])
+    print(dataset[0][9])

@@ -3,7 +3,7 @@ import json
 import logging
 import torch
 from .utils import moment_to_iou2d,  bert_embedding, get_vid_feat
-from transformers import DistilBertTokenizer
+from transformers import DistilBertTokenizer, BertTokenizer
 
 
 class CharadesDataset(torch.utils.data.Dataset):
@@ -15,7 +15,7 @@ class CharadesDataset(torch.utils.data.Dataset):
         with open(ann_file, 'r') as f:
             annos = json.load(f)
         self.annos = []
-        tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
+        tokenizer = BertTokenizer.from_pretrained('google-bert/bert-base-uncased')#DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
         logger = logging.getLogger("trm.trainer")
         logger.info("Preparing data, please wait...")
         self.remove_person = remove_person

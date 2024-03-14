@@ -9,6 +9,7 @@ from ..utils.timer import Timer, get_time_str
 
 
 def compute_on_dataset(model, data_loader, device, timer=None):
+    logger = logging.getLogger("trm.inference")
     model.eval()
     results_dict = {}
     cpu_device = torch.device("cpu")
@@ -28,7 +29,8 @@ def compute_on_dataset(model, data_loader, device, timer=None):
         results_dict.update(
             {video_id: {'contrastive': result1, 'iou': result2} for video_id, result1, result2 in zip(idxs, contrastive_output, iou_output)}
         )
-    logger = logging.getLogger("trm.inference")
+        logger.info(str(meters))
+    
     logger.info(str(meters))
     return results_dict
 
