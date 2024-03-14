@@ -2,6 +2,15 @@
 > Mindsopre implementation of Phrase-level Temporal Relationship Mining for Temporal Sentence Localization (AAAI2023).
 
 
+## Abstract
+
+In this paper, we address the problem of video temporal sentence localization, which aims to localize a target moment from videos according to a given language query. We observe that existing models suffer from a sheer performance drop when dealing with simple phrases contained in the sentence. It reveals the limitation that existing models only capture the annotation bias of the datasets but lack sufficient understanding of the semantic phrases in the query. To address this problem, we propose a phrase-level Temporal Relationship Mining (TRM) framework employing the temporal relationship relevant to the phrase and the whole sentence to have a better understanding of each semantic entity in the sentence. Specifically, we use phrase-level predictions to refine the sentence-level prediction, and use Multiple Instance Learning to improve the quality of phrase-level predictions. We also exploit the consistency and exclusiveness constraints of phrase-level and sentence-level predictions to regularize the training process, thus alleviating the ambiguity of each phrase prediction. The proposed approach sheds light on how machines can understand detailed phrases in a sentence and their compositions in their generality rather than learning the annotation biases. Experiments on the ActivityNet Captions and Charades-STA datasets show the effectiveness of our method on both phrase and sentence temporal localization and enable better model interpretability and generalization when dealing with unseen compositions of seen concepts.
+
+## Pipeline
+
+![pipeline](./imgs/pipeline.png)
+
+
 ## Requiments
 
 -  ~~pytorch~~: mindspore, mindformers
@@ -65,3 +74,8 @@ python param_convert.py --config-file configs/charades.yaml #  configs/activityn
 ```
 
 ### Pytorch version
+
+https://github.com/idejie/trm_mindspore/tree/pytorch
+
+### Original implementation
+https://github.com/minghangz/TRM
