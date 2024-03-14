@@ -13,7 +13,8 @@ In this paper, we address the problem of video temporal sentence localization, w
 
 ## Requiments
 
--  ~~pytorch~~: mindspore, mindformers
+-  pytorch
+- mindspore \& mindformers
 ```shell
 # mindspore
 conda install mindspore=2.2.11 -c mindspore -c conda-forge
@@ -44,7 +45,6 @@ python train_net.py --config-file configs/activitynet.yaml OUTPUT_DIR outputs/ac
 
 To train on the Charades-STA dataset:
 ```bash
-sh scripts/charades_train.sh
 python train_net.py --config-file configs/charades.yaml OUTPUT_DIR outputs/charade
 ```
 
