@@ -1,6 +1,18 @@
 # TRM: Phrase-level Temporal Relationship Mining for Temporal Sentence Localization
 > Mindspore implementation of Phrase-level Temporal Relationship Mining for Temporal Sentence Localization (AAAI2023).
 
+```
+@inproceedings{zheng2023phrase,
+  title={Phrase-level temporal relationship mining for temporal sentence localization},
+  author={Zheng, Minghang and Li, Sizhe and Chen, Qingchao and Peng, Yuxin and Liu, Yang},
+  booktitle={Proceedings of the AAAI Conference on Artificial Intelligence},
+  volume={37},
+  number={3},
+  pages={3669--3677},
+  year={2023}
+}
+```
+
 
 ## Abstract
 
